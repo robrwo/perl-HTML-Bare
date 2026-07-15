@@ -645,6 +645,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           cpos++;
           goto att_eq1;
       }
+      cpos++; // advance the cursor so malformed input (no '=' after a quoted attr name) cannot spin forever
       goto att_nameqsdone;
       
     att_eq1:
