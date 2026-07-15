@@ -281,7 +281,8 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
                     *(cpos+4) == 'D' &&
                     *(cpos+5) == 'A' &&
                     *(cpos+6) == 'T' &&
-                    *(cpos+7) == 'A'    ) {
+                    *(cpos+7) == 'A' &&
+                    *(cpos+8) == '['    ) { // require full "<![CDATA[" so cpos+=9 cannot skip past a truncated tail
                   cpos += 9;
                   curnode->type = 1;
                   goto cdata;
@@ -477,7 +478,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           temp = nodec_addchildr( curnode, tagname, tagname_len );
           temp->z = cpos +1 - htmlin;
           tagname_len            = 0;
-          cpos+=2;
+          if( *(cpos+1) ) cpos += 2; else cpos++; // skip assumed '>' only if not the NUL terminator
           if( curnode == root ) goto outside_all;
           goto val_1;
       }
@@ -514,7 +515,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           curname = del_namec( curname );
           curnode = curnode->parent;
           if( !curnode ) goto done;
-          cpos+=2; // am assuming next char is >
+          if( *(cpos+1) ) cpos += 2; else cpos++; // was: assume next char is > (skip past NUL on truncated tail)
           if( curnode == root ) goto outside_all;
           goto val_1;
         case '=':
@@ -573,7 +574,7 @@ int parserc_parse( struct parserc *self, char *htmlin ) {
           curname = del_namec( curname );
           curnode = curnode->parent;
           if( !curnode ) goto done;
-          cpos += 2;
+          if( *(cpos+1) ) cpos += 2; else cpos++; // "/> assumed" — skip '>' only if present, not the NUL
           if( curnode == root ) goto outside_all;
           goto val_1;
         case ' ':
